@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎰 Dozen Dominator | Roulette Predictor</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --neon-purple: #b44dff;
+            --neon-pink: #ff3dcf;
+            --neon-cyan: #00e5ff;
+            --neon-gold: #ffb300;
+            --text: #e8e8f0;
+            --text-secondary: #a0a0bb;
+            --glow-strong: 0 0 20px;
+            --glow-medium: 0 0 12px;
+            --glow-soft: 0 0 6px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 50% 0%, rgba(180, 77, 255, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(255, 61, 207, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 50%, rgba(0, 229, 255, 0.04) 0%, transparent 50%);
+            font-family: 'Segoe UI', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--surface);
+            border-radius: 28px;
+            padding: 18px 16px 20px;
+            position: relative;
+            box-shadow:
+                0 0 40px rgba(180, 77, 255, 0.25),
+                0 0 80px rgba(180, 77, 255, 0.10),
+                0 20px 50px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            border: 1.5px solid rgba(180, 77, 255, 0.3);
+            animation: borderGlowColorShift 8s ease-in-out infinite;
+            overflow: hidden;
+        }
+
+        @keyframes borderGlowColorShift {
+            0%, 100% { border-color: rgba(180, 77, 255, 0.4); box-shadow: 0 0 40px rgba(180, 77, 255, 0.25), 0 0 80px rgba(180, 77, 255, 0.10), 0 20px 50px rgba(0, 0, 0, 0.6); }
+            25% { border-color: rgba(255, 61, 207, 0.4); box-shadow: 0 0 40px rgba(255, 61, 207, 0.25), 0 0 80px rgba(255, 61, 207, 0.10), 0 20px 50px rgba(0, 0, 0, 0.6); }
+            50% { border-color: rgba(0, 229, 255, 0.4); box-shadow: 0 0 40px rgba(0, 229, 255, 0.25), 0 0 80px rgba(0, 229, 255, 0.10), 0 20px 50px rgba(0, 0, 0, 0.6); }
+            75% { border-color: rgba(255, 179, 0, 0.4); box-shadow: 0 0 40px rgba(255, 179, 0, 0.25), 0 0 80px rgba(255, 179, 0, 0.10), 0 20px 50px rgba(0, 0, 0, 0.6); }
+        }
+
+        .app-container::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(180, 77, 255, 0.25) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: orbPulse 4s ease-in-out infinite;
+            z-index: 0;
+        }
+        @keyframes orbPulse {
+            0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.3); }
+        }
+
+        .app-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .header .title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #d89cff, #ff6bd6, #7dd3fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleShimmer 5s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+        @keyframes titleShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .header .subtitle {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Prediction section - redesigned for dozens */
+        .prediction-section {
+            background: rgba(20, 20, 32, 0.8);
+            border-radius: 20px;
+            padding: 16px 14px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(180, 77, 255, 0.35);
+            box-shadow: var(--glow-medium) rgba(180, 77, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            transition: all 0.3s ease;
+            min-height: 110px;
+        }
+        .prediction-section.active-predict {
+            border-color: rgba(0, 229, 255, 0.7);
+            box-shadow: var(--glow-strong) rgba(0, 229, 255, 0.4), var(--glow-medium) rgba(180, 77, 255, 0.3);
+            animation: predictFlash 0.5s ease-out;
+        }
+        @keyframes predictFlash {
+            0% { box-shadow: 0 0 60px rgba(255, 61, 207, 0.8), 0 0 30px rgba(180, 77, 255, 0.6); }
+            100% { box-shadow: var(--glow-strong) rgba(0, 229, 255, 0.4), var(--glow-medium) rgba(180, 77, 255, 0.3); }
+        }
+        .prediction-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .dozen-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 6px 0 4px;
+        }
+        .dozen-card {
+            flex: 1;
+            background: linear-gradient(145deg, #1a1a2b, #10101c);
+            border-radius: 28px;
+            padding: 12px 6px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .dozen-card.primary-dozen {
+            border-left: 4px solid var(--neon-cyan);
+            border-right: 4px solid var(--neon-pink);
+            background: linear-gradient(145deg, #1e1e32, #121221);
+        }
+        .dozen-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffd966, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dozen-range {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .dozen-badge {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-cyan);
+            margin-top: 4px;
+        }
+        .last-clicked-info {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--neon-cyan);
+            margin-top: 12px;
+            letter-spacing: 1px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+            padding-top: 8px;
+        }
+        .last-clicked-info span {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+            text-shadow: 0 0 12px var(--neon-cyan);
+        }
+
+        /* input row */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .back-btn {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 61, 207, 0.5);
+            background: rgba(255, 61, 207, 0.08);
+            color: #ff6bd6;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: var(--glow-soft) rgba(255, 61, 207, 0.3);
+        }
+        .back-btn:active {
+            background: rgba(255, 61, 207, 0.25);
+            box-shadow: var(--glow-strong) rgba(255, 61, 207, 0.7);
+            transform: scale(0.92);
+        }
+        .back-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            box-shadow: none;
+        }
+        .current-input-display {
+            flex: 1;
+            background: rgba(10, 10, 20, 0.7);
+            border-radius: 14px;
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 10px rgba(180, 77, 255, 0.6);
+        }
+        .current-input-display .placeholder {
+            color: #555;
+            font-weight: 400;
+            font-size: 0.75rem;
+            text-shadow: none;
+        }
+
+        /* number grid 1-36 */
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .num-btn {
+            aspect-ratio: 1 / 1;
+            border-radius: 14px;
+            border: 1.5px solid rgba(180, 77, 255, 0.35);
+            background: linear-gradient(160deg, rgba(30, 30, 50, 0.8), rgba(18, 18, 30, 0.9));
+            color: #e0d8ff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), var(--glow-soft) rgba(180, 77, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .num-btn:active {
+            transform: scale(0.9);
+            border-color: rgba(0, 229, 255, 0.9);
+            box-shadow: var(--glow-strong) rgba(0, 229, 255, 0.7), var(--glow-medium) rgba(180, 77, 255, 0.5);
+            background: radial-gradient(circle at center, rgba(0, 229, 255, 0.2), rgba(30, 30, 50, 0.9));
+            color: #fff;
+        }
+        .num-btn.pressed-flash {
+            animation: buttonFlash 0.35s ease-out;
+        }
+        @keyframes buttonFlash {
+            0% { border-color: #fff; box-shadow: 0 0 35px rgba(255,255,255,0.9); background: rgba(255,255,255,0.15); }
+            100% { border-color: rgba(180, 77, 255, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.4); background: linear-gradient(160deg, rgba(30,30,50,0.8), rgba(18,18,30,0.9)); }
+        }
+
+        /* history section */
+        .history-section {
+            background: rgba(15, 15, 25, 0.7);
+            border-radius: 16px;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            max-height: 110px;
+            overflow-y: auto;
+        }
+        .history-section::-webkit-scrollbar { width: 3px; }
+        .history-section::-webkit-scrollbar-thumb { background: rgba(180, 77, 255, 0.4); border-radius: 10px; }
+        .history-title {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+        }
+        .history-item {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(180, 77, 255, 0.15);
+            border: 1px solid rgba(180, 77, 255, 0.3);
+            color: #d0c0ff;
+            animation: fadeInUp 0.3s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .history-item:last-child {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--glow-soft) rgba(0, 229, 255, 0.5);
+            color: #fff;
+            background: rgba(0, 229, 255, 0.2);
+        }
+        .no-history {
+            text-align: center;
+            color: #444;
+            font-size: 0.7rem;
+            padding: 8px;
+        }
+        .clear-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+        .clear-history-btn {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 0.65rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .clear-history-btn:active {
+            opacity: 1;
+            background: rgba(255, 107, 107, 0.15);
+        }
+        @media (max-width: 380px) {
+            .app-container { padding: 12px 8px 14px; }
+            .number-grid { gap: 5px; }
+            .num-btn { font-size: 0.78rem; border-radius: 10px; }
+            .dozen-card { padding: 8px 4px; }
+            .dozen-name { font-size: 1rem; }
+            .dozen-badge { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-inner">
+        <div class="header">
+            <div class="title">🎰 Dozen Dominator</div>
+            <div class="subtitle">2-STRONG DOZEN PREDICTOR</div>
+        </div>
+
+        <div class="prediction-section" id="predictionSection">
+            <div class="prediction-label">🎯 PREDICTED DOZENS (TOP 2)</div>
+            <div class="dozen-container" id="dozenPredictionContainer">
+                <div class="dozen-card">
+                    <div class="dozen-name">FIRST DOZEN</div>
+                    <div class="dozen-range">1 - 12</div>
+                    <div class="dozen-badge" id="dozen1Indicator">⚡</div>
+                </div>
+                <div class="dozen-card">
+                    <div class="dozen-name">SECOND DOZEN</div>
+                    <div class="dozen-range">13 - 24</div>
+                    <div class="dozen-badge" id="dozen2Indicator">⚡</div>
+                </div>
+                <div class="dozen-card">
+                    <div class="dozen-name">THIRD DOZEN</div>
+                    <div class="dozen-range">25 - 36</div>
+                    <div class="dozen-badge" id="dozen3Indicator">⚡</div>
+                </div>
+            </div>
+            <div class="last-clicked-info" id="lastClickedInfo" style="display:none;"></div>
+        </div>
+
+        <div class="input-row">
+            <button class="back-btn" id="backBtn" disabled title="Back / Delete last entry">⌫</button>
+            <div class="current-input-display" id="currentInputDisplay">
+                <span class="placeholder">Select a number</span>
+            </div>
+        </div>
+
+        <div class="number-grid" id="numberGrid"></div>
+
+        <div class="history-section">
+            <div class="history-title">📋 Spin History</div>
+            <div class="history-list" id="historyList">
+                <span class="no-history">No spins recorded</span>
+            </div>
+            <div class="clear-row">
+                <button class="clear-history-btn" id="clearHistoryBtn">Clear All</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // =============== DOZEN PREDICTION ENGINE (exactly as requested) ===============
+        // 1. European wheel order is used for neighbor concept, but main focus: Dozens.
+        // According to the logic: given last number, predict 2 strongest dozens:
+        // - If last number is 0 -> default dozens [1,2]
+        // - Else: current dozen and opposite dozen (1<->3, 2's opposite? In logic: opposite_dozen = 3 if current==1 else (1 if current==3 else 3))
+        // For dozen 2, opposite is 3 (based on original: "opposite_dozen = 3 if current_dozen == 1 else (1 if current_dozen == 3 else 3)" -> for 2 it gives 3)
+        
+        function getDozenFromNumber(num) {
+            if (num === 0) return 0;
+            if (num >= 1 && num <= 12) return 1;
+            if (num >= 13 && num <= 24) return 2;
+            if (num >= 25 && num <= 36) return 3;
+            return 0;
+        }
+
+        function getTopTwoDozens(lastNumber) {
+            // lastNumber is integer 1-36 or zero? we only have 1-36 from grid, but history could be 1-36.
+            if (lastNumber === undefined || lastNumber === null) return [1,2]; // fallback
+            
+            let currentDozen = getDozenFromNumber(lastNumber);
+            let predictedDozens = [];
+            
+            if (currentDozen === 0) {
+                predictedDozens = [1, 2];
+            } else {
+                // opposite dozen logic: for dozen 1 -> opposite is 3; for dozen 3 -> opposite is 1; for dozen 2 -> opposite is 3 (as per given)
+                let oppositeDozen;
+                if (currentDozen === 1) oppositeDozen = 3;
+                else if (currentDozen === 3) oppositeDozen = 1;
+                else oppositeDozen = 3;   // currentDozen == 2 => opposite 3
+                predictedDozens = [currentDozen, oppositeDozen];
+            }
+            return predictedDozens; // array of two dozen numbers (1,2,3)
+        }
+
+        // Helper: get range string & visual
+        function getDozenMeta(dozen) {
+            if (dozen === 1) return { name: "FIRST DOZEN", range: "1–12", color: "#5dade2" };
+            if (dozen === 2) return { name: "SECOND DOZEN", range: "13–24", color: "#58d68d" };
+            if (dozen === 3) return { name: "THIRD DOZEN", range: "25–36", color: "#f7dc6f" };
+            return { name: "?", range: "—", color: "#aaa" };
+        }
+
+        // DOM elements
+        const numberGrid = document.getElementById('numberGrid');
+        const predictionSection = document.getElementById('predictionSection');
+        const lastClickedInfo = document.getElementById('lastClickedInfo');
+        const currentInputDisplay = document.getElementById('currentInputDisplay');
+        const backBtn = document.getElementById('backBtn');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const dozen1Indicator = document.getElementById('dozen1Indicator');
+        const dozen2Indicator = document.getElementById('dozen2Indicator');
+        const dozen3Indicator = document.getElementById('dozen3Indicator');
+
+        // State
+        let currentInput = null;     // last clicked / selected number
+        let history = [];            // array of numbers (max 20)
+
+        // Update UI for Dozen predictions (highlight predicted dozens)
+        function updateDozenPredictionUI(clickedNumber) {
+            if (clickedNumber === null || clickedNumber === undefined) {
+                // reset - neutral
+                dozen1Indicator.textContent = "○";
+                dozen2Indicator.textContent = "○";
+                dozen3Indicator.textContent = "○";
+                const cards = document.querySelectorAll('.dozen-card');
+                cards.forEach(card => card.classList.remove('primary-dozen'));
+                return;
+            }
+            const predicted = getTopTwoDozens(clickedNumber);
+            // Reset all badges and card styles
+            dozen1Indicator.textContent = "○";
+            dozen2Indicator.textContent = "○";
+            dozen3Indicator.textContent = "○";
+            const allCards = document.querySelectorAll('.dozen-card');
+            allCards.forEach(card => card.classList.remove('primary-dozen'));
+            
+            // Mark predicted dozens with star and highlight card
+            predicted.forEach(doz => {
+                if (doz === 1) {
+                    dozen1Indicator.textContent = "⭐";
+                    const card1 = document.querySelector('.dozen-card:nth-child(1)');
+                    if (card1) card1.classList.add('primary-dozen');
+                } else if (doz === 2) {
+                    dozen2Indicator.textContent = "⭐";
+                    const card2 = document.querySelector('.dozen-card:nth-child(2)');
+                    if (card2) card2.classList.add('primary-dozen');
+                } else if (doz === 3) {
+                    dozen3Indicator.textContent = "⭐";
+                    const card3 = document.querySelector('.dozen-card:nth-child(3)');
+                    if (card3) card3.classList.add('primary-dozen');
+                }
+            });
+            
+            // optional extra: show last digit info? keep minimal.
+            const currentDozen = getDozenFromNumber(clickedNumber);
+            let dozenText = "";
+            if (currentDozen === 1) dozenText = "First (1-12)";
+            else if (currentDozen === 2) dozenText = "Second (13-24)";
+            else if (currentDozen === 3) dozenText = "Third (25-36)";
+            else dozenText = "Zero special";
+            lastClickedInfo.style.display = 'block';
+            lastClickedInfo.innerHTML = `🎲 Clicked <span>${clickedNumber}</span> (${dozenText}) → <strong style="color:#ffb347;">${predicted.map(d => d===1?'1st':(d===2?'2nd':'3rd')).join(' & ')} Dozen</strong> (strongest neighbours)`;
+        }
+
+        // Build number grid
+        function buildNumberGrid() {
+            numberGrid.innerHTML = '';
+            for (let i = 1; i <= 36; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'num-btn';
+                btn.textContent = i;
+                btn.dataset.number = i;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleNumberClick(i, btn);
+                });
+                numberGrid.appendChild(btn);
+            }
+        }
+
+        function handleNumberClick(number, btnElement) {
+            if (btnElement) {
+                btnElement.classList.remove('pressed-flash');
+                void btnElement.offsetWidth;
+                btnElement.classList.add('pressed-flash');
+            }
+            // update current input
+            currentInput = number;
+            updateInputDisplay();
+            updateBackButton();
+            
+            // Update Dozen prediction UI based on last number (currentInput)
+            updateDozenPredictionUI(currentInput);
+            
+            // Add to history
+            addToHistory(number);
+            
+            // Flash effect
+            predictionSection.classList.remove('active-predict');
+            void predictionSection.offsetWidth;
+            predictionSection.classList.add('active-predict');
+        }
+
+        function updateInputDisplay() {
+            if (currentInput !== null) {
+                currentInputDisplay.innerHTML = `<span style="font-size:1.6rem;">${currentInput}</span>`;
+            } else {
+                currentInputDisplay.innerHTML = '<span class="placeholder">Select a number</span>';
+            }
+        }
+
+        function updateBackButton() {
+            backBtn.disabled = (currentInput === null && history.length === 0);
+        }
+
+        function addToHistory(number) {
+            history.push(number);
+            if (history.length > 20) history.shift();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            if (history.length === 0) {
+                historyList.innerHTML = '<span class="no-history">No spins recorded</span>';
+            } else {
+                historyList.innerHTML = history.map((item, idx) => {
+                    const isLast = idx === history.length - 1;
+                    return `<span class="history-item${isLast ? ' latest' : ''}">${item}</span>`;
+                }).join('');
+            }
+            const histContainer = document.querySelector('.history-section');
+            if (histContainer) histContainer.scrollTop = histContainer.scrollHeight;
+        }
+
+        // Back button functionality: remove last history entry and refresh prediction
+        function onBack() {
+            if (history.length > 0) {
+                history.pop();
+                renderHistory();
+                if (history.length > 0) {
+                    const lastEntry = history[history.length - 1];
+                    currentInput = lastEntry;
+                    updateInputDisplay();
+                    updateDozenPredictionUI(currentInput);
+                    predictionSection.classList.remove('active-predict');
+                    void predictionSection.offsetWidth;
+                    predictionSection.classList.add('active-predict');
+                } else {
+                    currentInput = null;
+                    updateInputDisplay();
+                    updateDozenPredictionUI(null);   // reset dozens to neutral
+                    lastClickedInfo.style.display = 'none';
+                }
+            } else if (currentInput !== null) {
+                currentInput = null;
+                updateInputDisplay();
+                updateDozenPredictionUI(null);
+                lastClickedInfo.style.display = 'none';
+            }
+            updateBackButton();
+        }
+
+        function clearAllHistory() {
+            history = [];
+            currentInput = null;
+            renderHistory();
+            updateInputDisplay();
+            updateDozenPredictionUI(null);
+            lastClickedInfo.style.display = 'none';
+            updateBackButton();
+            predictionSection.classList.remove('active-predict');
+        }
+
+        // Event binding
+        backBtn.addEventListener('click', onBack);
+        clearHistoryBtn.addEventListener('click', clearAllHistory);
+        
+        // keyboard support: backspace and number keys
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !backBtn.disabled) {
+                e.preventDefault();
+                backBtn.click();
+            }
+            const keyNum = parseInt(e.key);
+            if (keyNum >= 1 && keyNum <= 9) {
+                e.preventDefault();
+                const btn = numberGrid.querySelector(`[data-number="${keyNum}"]`);
+                if (btn) btn.click();
+            }
+            // also support 10-36? skip for simplicity
+        });
+        
+        // Initial reset display
+        function init() {
+            buildNumberGrid();
+            updateInputDisplay();
+            updateBackButton();
+            renderHistory();
+            updateDozenPredictionUI(null);   // neutral dozens (no active prediction)
+            lastClickedInfo.style.display = 'none';
+        }
+        
+        init();
+        console.log("🎯 Dozen-based predictor ready: two strongest dozens based on 'current + opposite' logic.");
+    })();
+</script>
+</body>
+</html>
